@@ -16,6 +16,17 @@ framework:
     #fragments: true
     php_errors:
         log: true
+    
+    http_client:
+        default_options:
+            headers:
+                'User-Agent': 'KikooLoL'
+        scoped_clients:
+            riotgames:
+                base_uri: 'https://euw1.api.riotgames.com'
+                headers:
+                    Accept: 'application/json'
+                    'X-Riot-Token': '%env(RIOT_API_KEY)%'
 
 when@test:
     framework:

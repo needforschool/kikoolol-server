@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Controller;
+
+use App\Document\MatchDocument;
+use App\Service\MatchService;
+use App\Service\RiotMatchService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Match controller.
+ * 
+ * @Route("/matchs", name="matchs_", methods={"GET"})
+ */
+class MatchController extends AbstractController
+{
+  private $service;
+
+  public function __construct(MatchService $matchService)
+  {
+      $this->service = $matchService;
+  }
+
+  /**
+   * List all matchs.
+   * 
+   * @Route("/", name="list", methods={"GET"})
+   * 
+   * @return JsonResponse
+   */
+  public function index(): JsonResponse
+  {
+    $matchs = $this->service->findAll();
+
+    return $this->json([
+      'message' => null,
+      'data' => [
+        'matchs' => $matchs
+      ],
+      'errors' => null,
+    ], 200);
+  }
+
+  /**
+   * List matchs by player id with limit in request payload.
+   * 
+   * @Route("/{region}/{playerName}", name="list_by_player_name", methods={"GET"})
+   * 
+   * @param string $region
+   * @param string $playerName
+   * 
+   * @return JsonResponse
+   */
+  public function getByPlayerName(string $region, string $playerName, Request $request, RiotMatchService $riotMatchService): JsonResponse
+  {
+    $limit = $request->query->get('limit', 20);
+    //$matchs = $this->service->findByPlayerName($playerName, $limit);
+
+    $match = new MatchDocument();
+    $match->setMatchId('123');
+    $match->setParticiptants(['123', '456']);
+    $match = $this->service->createMatch($match);
+    $matchs = [$match];
+
+    if(empty($matchs)) {
+      //$matchs = $riotMatchService->loadAllMatchsByPlayerName($playerName, $region);
+
+      if(!$matchs || empty($matchs)) {
+        return $this->json([
+          'message' => 'No matchs found for this player.',
+          'data' => null,
+          'errors' => null,
+        ], 404);
+      }
+    }
+
+    return $this->json([
+      'message' => null,
+      'data' => [
+        'matchs' => $matchs,
+      ],
+      'errors' => null,
+    ], 200);
+  }
+}
