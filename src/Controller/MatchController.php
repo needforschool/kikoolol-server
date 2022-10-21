@@ -49,7 +49,7 @@ class MatchController extends AbstractController
    * 
    * @Route("/{region}/{playerName}", name="list_by_player_name", methods={"GET"})
    * 
-   * @param string $region
+   * @param string $region From : europe, asia, americas
    * @param string $playerName
    * 
    * @return JsonResponse
@@ -57,24 +57,14 @@ class MatchController extends AbstractController
   public function getByPlayerName(string $region, string $playerName, Request $request, RiotMatchService $riotMatchService): JsonResponse
   {
     $limit = $request->query->get('limit', 20);
-    //$matchs = $this->service->findByPlayerName($playerName, $limit);
-
-    $match = new MatchDocument();
-    $match->setMatchId('123');
-    $match->setParticiptants(['123', '456']);
-    $match = $this->service->createMatch($match);
-    $matchs = [$match];
+    $matchs = $this->service->findByPlayerName($playerName, $region, $limit);
 
     if(empty($matchs)) {
-      //$matchs = $riotMatchService->loadAllMatchsByPlayerName($playerName, $region);
-
-      if(!$matchs || empty($matchs)) {
         return $this->json([
           'message' => 'No matchs found for this player.',
           'data' => null,
           'errors' => null,
         ], 404);
-      }
     }
 
     return $this->json([

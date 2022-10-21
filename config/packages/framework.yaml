@@ -23,7 +23,7 @@ framework:
                 'User-Agent': 'KikooLoL'
         scoped_clients:
             riotgames:
-                base_uri: 'https://euw1.api.riotgames.com'
+                scope: '^(https:\/\/)([\w]+)(\.api\.riotgames\.com)'
                 headers:
                     Accept: 'application/json'
                     'X-Riot-Token': '%env(RIOT_API_KEY)%'
