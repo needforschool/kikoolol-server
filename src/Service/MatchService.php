@@ -36,7 +36,7 @@ class MatchService
    * 
    * @return array
    */
-  public function findByPlayerName(string $playerName, int $limit = 20, RiotMatchService $riotMatchService): array
+  public function findByPlayerName(RiotMatchService $riotMatchService, string $playerName, int $limit = 20): array
   {
     $matchs = $this->manager->getRepository(MatchDocument::class)->findAllByPlayerName($playerName, $limit);
 
