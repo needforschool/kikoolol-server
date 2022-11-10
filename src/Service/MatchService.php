@@ -11,11 +11,12 @@ use Doctrine\ODM\MongoDB\DocumentManager;
  */
 class MatchService
 {
-  private $manager;
+  private $manager, $riotMatchService;
 
-  public function __construct(DocumentManager $manager)
+  public function __construct(DocumentManager $manager, RiotMatchService $riotMatchService)
   {
     $this->manager = $manager;
+    $this->riotMatchService = $riotMatchService;
   }
 
   /**
@@ -36,9 +37,21 @@ class MatchService
    * 
    * @return array
    */
-  public function findByPlayerName(RiotMatchService $riotMatchService, string $playerName, int $limit = 20): array
+  public function findByPlayerName(string $playerName, string $region, int $limit = 20): array
   {
     $matchs = $this->manager->getRepository(MatchDocument::class)->findAllByPlayerName($playerName, $limit);
+
+    if(!$matchs) {
+      $matchs = $this->riotMatchService->loadAllMatchsByPlayerName($playerName, $region, $limit);
+
+      if($matchs) {
+        foreach($matchs as $match) {
+          $this->manager->persist($match);
+        }
+
+        $this->manager->flush();
+      }
+    }
 
     return $matchs;
   }

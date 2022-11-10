@@ -14,27 +14,36 @@ class RiotMatchService
   private $platformRoutes;
   private $getPlayerInfoEndpoint = "summoner/v4/summoners/by-name";
   private $getMatchListEndpoint = "match/v4/matchlists/by-account";
-  private $getMatchsIdsEndpoint = "match/v5/matches/by-puuid/%s/ids";
-  private $getPlayerMatchsInfo = "match/v5/matches";
+  private $getMatchsIdsEndpoint = "match/v5/matches/by-puuid";
+  private $getPlayerMatchsInfoEndpoint = "match/v5/matches";
 
   public function __construct(HttpClientInterface $riotgames)
   { 
       $this->client = $riotgames;
 
       $platforms = [
-        "euw1",
-        "eun1",
-        "na1",
-        "br1",
-        "la1",
-        "la2",
-        "oc1",
-        "tr1",
-        "ru",
-        "jp1",
+        "v4" => [
+          "euw1",
+          "eun1",
+          "na1",
+          "br1",
+          "la1",
+          "la2",
+          "oc1",
+          "tr1",
+          "ru",
+          "jp1",
+        ],
+        "v5" => [
+          "americas",
+          "asia",
+          "europe",
+        ]
       ];
-      foreach ($platforms as $platform) {
-        $this->platformRoutes[$platform] = $platform.".".$this->baseUrl;
+      foreach($platforms as $version => $platforms) {
+        foreach($platforms as $platform) {
+          $this->platformRoutes[$version][$platform] = $this->protocol . "://" . $platform . "." . $this->baseUrl;
+        }
       }
   }
 
@@ -45,9 +54,32 @@ class RiotMatchService
    * 
    * @return string|null
    */
-  private function getPlatformRoute(string $region): string | null
+  private function getPlatformRoute(string $region, string $version = "v4"): string | null
   {
-    return array_key_exists($region, $this->platformRoutes) ? $this->platformRoutes[$region] : null;
+    if($version == "v5") {
+      switch($region) {
+        case "euw1":
+        case "eun1":
+        case "tr1":
+        case "ru":
+          $region = "europe";
+          break;
+        case "na1":
+        case "br1":
+        case "la1":
+        case "la2":
+        case "oc1":
+          $region = "americas";
+          break;
+        case "jp1":
+          $region = "asia";
+          break;
+        default:
+          break;
+      }
+    }
+
+    return $this->platformRoutes[$version][$region] ?? null;
   }
 
   /**
@@ -60,13 +92,35 @@ class RiotMatchService
    * 
    * @return string
    */
-  private function getAccountIdByPlayerName(string $playerName, string $region): string
+  private function getPUUIDByPlayerName(string $playerName, string $region): string
   {
-    $url = sprintf("%s://%s/%s/%s", $this->protocol, $this->getPlatformRoute($region), $this->getPlayerInfoEndpoint, $playerName);
+    $url = sprintf("%s/%s/%s", $this->getPlatformRoute($region), $this->getPlayerInfoEndpoint, $playerName);
     $response = $this->client->request('GET', $url);
 
     $data = $response->toArray();
-    return $data['accountId'];
+    return $data['puuid'];
+  }
+
+  /**
+   * Get matchs ids for a given player uuid.
+   * 
+   * @param string $puuid
+   * @param string $region
+   * @param int $limit
+   * 
+   * @return array<string>
+   */
+  private function getMatchsIdsByPUUID(string $puuid, string $region, int $limit): array
+  {
+    $url = sprintf("%s/%s/%s/ids", $this->getPlatformRoute($region, "v5"), $this->getMatchsIdsEndpoint, $puuid);
+    $response = $this->client->request('GET', $url, [
+      'query' => [
+        'count' => $limit,
+      ]
+    ]);
+
+    $data = $response->toArray();
+    return $data;
   }
 
   /**
@@ -75,31 +129,30 @@ class RiotMatchService
    * @param string $playerName
    * @param string $region euw1, br1, eun1, jp1, kr, la1, la2, na1, oc1, tr1, ru
    * 
-    * @return array<int,MatchDocument>|null
+   * @return array<int,MatchDocument>|null
    */
-  public function loadAllMatchsByPlayerName(string $playerName, string $region): array | null
+  public function loadAllMatchsByPlayerName(string $playerName, string $region, int $limit): array | null
   {
     $platformRoute = $this->getPlatformRoute($region);
 
+    // - Check if the region is valid
     if(!$platformRoute) {
       return null;
     }
 
-    $accountId = $this->getAccountIdByPlayerName($playerName, $region);
+    $matchs = [];
 
-    $url = sprintf("%s://%s/%s/%s", $this->protocol, $platformRoute, $this->getMatchListEndpoint, $accountId);
-    $response = $this->client->request('GET', $url);
+    $puuid = $this->getPUUIDByPlayerName($playerName, $region);
+    $matchsIds = $this->getMatchsIdsByPUUID($puuid, $region, $limit);
 
-    if($response->getStatusCode() !== 200) {
-      return null;
+    foreach ($matchsIds as $matchId) {
+      $url = sprintf("%s/%s/%s", $this->getPlatformRoute($region, "v5"), $this->getPlayerMatchsInfoEndpoint, $matchId);
+      $response = $this->client->request('GET', $url);
+
+      $data = $response->toArray();
+      $matchs[] = new MatchDocument($data);
     }
 
-    $data = $response->toArray();
-    foreach ($data as $key => $value) {
-      $match = new MatchDocument();
-      print_r($value);
-    }
-
-    return $data;
+    return $matchs;
   }
 }

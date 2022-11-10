@@ -4,7 +4,7 @@ fos_rest:
     body_listener: true
     format_listener:
           rules:
-              - { path: '^/', fallback_format: html }
+              - { path: '^/*',  fallback_format: html }
               - { path: '^/api', priorities: ['json'], fallback_format: json, prefer_extension: false }
     param_fetcher_listener: true
     view:
