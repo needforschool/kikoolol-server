@@ -21,4 +21,16 @@ class HttpResponseHelper
       'errors' => $errors,
     ];
   }
+
+  public static function formatErrorFromResponse($response)
+  {
+    $errors = [];
+    foreach ($response->getErrors() as $error) {
+      $errors[] = $error->getMessage();
+    }
+
+    print_r($errors);
+
+    return $errors;
+  }
 }
