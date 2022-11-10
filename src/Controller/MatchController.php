@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Document\MatchDocument;
 use App\Service\MatchService;
 use App\Service\RiotMatchService;
+use App\Helper\HttpResponseHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -35,13 +36,7 @@ class MatchController extends AbstractController
   {
     $matchs = $this->service->findAll();
 
-    return $this->json([
-      'message' => null,
-      'data' => [
-        'matchs' => $matchs
-      ],
-      'errors' => null,
-    ], 200);
+    return $this->json(HttpResponseHelper::success($matchs), 200);
   }
 
   /**
@@ -60,19 +55,9 @@ class MatchController extends AbstractController
     $matchs = $this->service->findByPlayerName($playerName, $region, $limit);
 
     if(empty($matchs)) {
-        return $this->json([
-          'message' => 'No matchs found for this player.',
-          'data' => null,
-          'errors' => null,
-        ], 404);
+      return $this->json(HttpResponseHelper::error('No matchs found for this player name'), 404);
     }
 
-    return $this->json([
-      'message' => null,
-      'data' => [
-        'matchs' => $matchs,
-      ],
-      'errors' => null,
-    ], 200);
+    return $this->json(HttpResponseHelper::success($matchs), 200);
   }
 }
