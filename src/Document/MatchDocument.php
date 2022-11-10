@@ -3,7 +3,7 @@
 namespace App\Document;
 
 use App\Repository\MatchRepository;
-use App\Utils\Hydrateable;
+use App\Util\Hydrateable;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 
 /**
