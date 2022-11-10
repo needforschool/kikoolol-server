@@ -4,6 +4,11 @@ namespace App\Service;
 
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Document\MatchDocument;
+use App\Document\Metadata;
+use App\Document\GameInfo;
+use App\Document\Participant;
+use App\Document\Item;
+use App\Helper\HttpResponseHelper;
 
 class RiotMatchService
 {
@@ -56,6 +61,10 @@ class RiotMatchService
    */
   private function getPlatformRoute(string $region, string $version = "v4"): string | null
   {
+    if (!$this->checkRegion($region, $version)) {
+      return null;
+    }
+
     if($version == "v5") {
       switch($region) {
         case "euw1":
@@ -83,6 +92,18 @@ class RiotMatchService
   }
 
   /**
+   * Check the validity of a given region.
+   * 
+   * @param string $region
+   * 
+   * @return bool
+   */
+  public function checkRegion(string $region): bool
+  {
+    return array_key_exists($region, $this->platformRoutes["v4"]) || array_key_exists($region, $this->platformRoutes["v5"]);
+  }
+
+  /**
    * Get player account id.
    * 
    * /!\ Check the validity of the region before calling this method.
@@ -92,10 +113,14 @@ class RiotMatchService
    * 
    * @return string
    */
-  private function getPUUIDByPlayerName(string $playerName, string $region): string
+  public function getPUUIDByPlayerName(string $playerName, string $region): string
   {
     $url = sprintf("%s/%s/%s", $this->getPlatformRoute($region), $this->getPlayerInfoEndpoint, $playerName);
     $response = $this->client->request('GET', $url);
+
+    if ($response->getStatusCode() != 200) {
+      throw new \Exception(HttpResponseHelper::formatErrorFromResponse($response));
+    }
 
     $data = $response->toArray();
     return $data['puuid'];
@@ -149,8 +174,66 @@ class RiotMatchService
       $url = sprintf("%s/%s/%s", $this->getPlatformRoute($region, "v5"), $this->getPlayerMatchsInfoEndpoint, $matchId);
       $response = $this->client->request('GET', $url);
 
+      if ($response->getStatusCode() != 200) {
+        throw new \Exception(HttpResponseHelper::formatErrorFromResponse($response));
+      }
+
       $data = $response->toArray();
-      $matchs[] = new MatchDocument($data);
+
+      $metadata = new Metadata($data['metadata']);
+      $gameInfo = new GameInfo([
+        'id' => $data['info']['gameId'],
+        'name' => $data['info']['gameName'],
+        'mode' => $data['info']['gameMode'],
+        'type' => $data['info']['gameType'],
+        'creation' => $data['info']['gameCreation'],
+        'duration' => $data['info']['gameDuration'],
+        'startTimestamp' => $data['info']['gameStartTimestamp'],
+        'endTimestamp' => $data['info']['gameEndTimestamp'],
+        'version' => $data['info']['gameVersion'],
+        'mapId' => $data['info']['mapId'],
+        'platformId' => $data['info']['platformId'],
+        'queueId' => $data['info']['queueId'],
+        'tournamentCode' => $data['info']['tournamentCode'],
+      ]);
+
+      $participants = [];
+      for($i = 0; $i < count($data['info']['participants']); $i++) {
+        $items = [
+          $data['info']['participants'][$i]['item0'],
+          $data['info']['participants'][$i]['item1'],
+          $data['info']['participants'][$i]['item2'],
+          $data['info']['participants'][$i]['item3'],
+          $data['info']['participants'][$i]['item4'],
+          $data['info']['participants'][$i]['item5'],
+          $data['info']['participants'][$i]['item6'],
+        ];
+
+        for ($j = 0; $j < count($items); $j++) {
+          $items[$j] = new Item([
+            'id' => $items[$j],
+            'position' => $j,
+          ]);
+        }
+
+        $participant = array_merge($data['info']['participants'][$i], [
+          'items' => $items,
+        ]);
+
+        $participant = new Participant($participant);
+        array_push($participants, $participant);
+      }
+      
+      // TODO: Hydrate teams
+
+      $match = new MatchDocument();
+      $match
+        ->setMetadata($metadata)
+        ->setGameInfo($gameInfo)
+        ->setParticipants($participants)
+        ->setTeams([]);
+
+      array_push($matchs, $match);
     }
 
     return $matchs;

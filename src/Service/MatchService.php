@@ -4,6 +4,8 @@ namespace App\Service;
 
 use App\Document\MatchDocument;
 use App\Service\RiotMatchService;
+use App\Helper\HttpResponseHelper;
+
 use Doctrine\ODM\MongoDB\DocumentManager;
 
 /**
@@ -39,7 +41,12 @@ class MatchService
    */
   public function findByPlayerName(string $playerName, string $region, int $limit = 20): array
   {
-    $matchs = $this->manager->getRepository(MatchDocument::class)->findAllByPlayerName($playerName, $limit);
+    if (!$this->riotMatchService->checkRegion($region)) {
+      return [];
+    }
+
+    $playerUUID = $this->riotMatchService->getPUUIDByPlayerName($playerName, $region);
+    $matchs = $this->manager->getRepository(MatchDocument::class)->findAllByPlayerUUID($playerUUID, $limit);
 
     if(!$matchs) {
       $matchs = $this->riotMatchService->loadAllMatchsByPlayerName($playerName, $region, $limit);
