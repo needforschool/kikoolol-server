@@ -47,3 +47,11 @@
 
 # Embedded web-server pid file
 /.web-server-pid
+
+# Env files
+/.env.local
+/.env.*.local
+/.env.test
+/.env.test.local
+/.env.*.test
+/.env.dev
