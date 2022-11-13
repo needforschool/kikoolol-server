@@ -48,10 +48,12 @@
 # Embedded web-server pid file
 /.web-server-pid
 
-# Env files
+###> symfony/framework-bundle ###
 /.env.local
+/.env.local.php
 /.env.*.local
-/.env.test
-/.env.test.local
-/.env.*.test
-/.env.dev
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
