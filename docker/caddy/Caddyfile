@@ -1,6 +1,8 @@
 {
     # Debug
     {$CADDY_DEBUG}
+    
+    auto_https off
 }
 
 {$SERVER_NAME}
