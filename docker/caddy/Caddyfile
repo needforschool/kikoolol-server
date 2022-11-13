@@ -3,6 +3,7 @@
     {$CADDY_DEBUG}
     
     auto_https off
+    skip_install_trust
 }
 
 {$SERVER_NAME}
