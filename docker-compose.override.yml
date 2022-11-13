@@ -2,6 +2,18 @@ version: "3.4"
 
 # Development environment override
 services:
+  database:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - 27017:27017
+    volumes:
+      - ~/apps/mongo:/data/db
+    environment:
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
+
   php:
     build:
       target: app_php_dev
@@ -17,6 +29,8 @@ services:
     extra_hosts:
       # Ensure that host.docker.internal is correctly defined on Linux
       - host.docker.internal:host-gateway
+    depends_on:
+      - database
 
   caddy:
     volumes:

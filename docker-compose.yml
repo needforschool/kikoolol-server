@@ -1,18 +1,6 @@
 version: "3.4"
 
 services:
-  database:
-    image: mongo:5.0
-    container_name: mongodb
-    ports:
-      - 27017:27017
-    volumes:
-      - ~/apps/mongo:/data/db
-    environment:
-      - PUID=1000
-      - PGID=1000
-    restart: unless-stopped
-
   php:
     build:
       context: .
@@ -30,8 +18,6 @@ services:
       start_period: 30s
     env_file:
       - .env
-    depends_on:
-      - database
 
   caddy:
     build:
