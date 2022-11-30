@@ -1,0 +1,10 @@
+// MongoDB Playground
+use('kikoolol');
+
+db.getCollection('summoners')
+  .createIndex(
+    {
+      summonerName: 'text',
+    }, {
+    }
+  );

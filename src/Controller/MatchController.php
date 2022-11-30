@@ -4,17 +4,18 @@ namespace App\Controller;
 
 use App\Document\MatchDocument;
 use App\Service\MatchService;
-use App\Service\RiotMatchService;
 use App\Helper\HttpResponseHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use OpenApi\Annotations as OA;
 
 /**
  * Match controller.
  * 
- * @Route("/matchs", name="matchs_", methods={"GET"})
+ * @Route("/matchs", name="matchs_")
+ * @OA\Tag(name="matchs")
  */
 class MatchController extends AbstractController
 {
@@ -42,20 +43,20 @@ class MatchController extends AbstractController
   /**
    * List matchs by player id with limit in request payload.
    * 
-   * @Route("/{region}/{playerName}", name="list_by_player_name", methods={"GET"})
+   * @Route("/{region}/{summonerName}", name="list_by_summoner_name", methods={"GET"})
    * 
    * @param string $region From : europe, asia, americas
-   * @param string $playerName
+   * @param string $summonerName
    * 
    * @return JsonResponse
    */
-  public function getByPlayerName(string $region, string $playerName, Request $request, RiotMatchService $riotMatchService): JsonResponse
+  public function getBySummonerName(string $region, string $summonerName, Request $request): JsonResponse
   {
     $limit = $request->query->get('limit', 20);
-    $matchs = $this->service->findByPlayerName($playerName, $region, $limit);
+    $matchs = $this->service->findBySummonerName($summonerName, $region, $limit);
 
     if(empty($matchs)) {
-      return $this->json(HttpResponseHelper::error('No matchs found for this player name'), 404);
+      return $this->json(HttpResponseHelper::notFound('No matchs found for this player name'), 404);
     }
 
     return $this->json(HttpResponseHelper::success($matchs), 200);

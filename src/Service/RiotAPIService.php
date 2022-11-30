@@ -10,7 +10,7 @@ use App\Document\Participant;
 use App\Document\Item;
 use App\Helper\HttpResponseHelper;
 
-class RiotMatchService
+class RiotAPIService
 {
   private $client;
 
@@ -108,14 +108,14 @@ class RiotMatchService
    * 
    * /!\ Check the validity of the region before calling this method.
    * 
-   * @param string $playerName
+   * @param string $summonerName
    * @param string $region
    * 
    * @return string
    */
-  public function getPUUIDByPlayerName(string $playerName, string $region): string
+  public function getPUUIDBySummonerName(string $summonerName, string $region): string
   {
-    $url = sprintf("%s/%s/%s", $this->getPlatformRoute($region), $this->getPlayerInfoEndpoint, $playerName);
+    $url = sprintf("%s/%s/%s", $this->getPlatformRoute($region), $this->getPlayerInfoEndpoint, $summonerName);
     $response = $this->client->request('GET', $url);
 
     if ($response->getStatusCode() != 200) {
@@ -123,6 +123,7 @@ class RiotMatchService
     }
 
     $data = $response->toArray();
+
     return $data['puuid'];
   }
 
@@ -151,12 +152,12 @@ class RiotMatchService
   /**
    * Load matchs by player 
    * 
-   * @param string $playerName
+   * @param string $summonerName
    * @param string $region euw1, br1, eun1, jp1, kr, la1, la2, na1, oc1, tr1, ru
    * 
    * @return array<int,MatchDocument>|null
    */
-  public function loadAllMatchsByPlayerName(string $playerName, string $region, int $limit): array | null
+  public function loadAllMatchsByPUUID(string $puuid, string $region, int $limit): array | null
   {
     $platformRoute = $this->getPlatformRoute($region);
 
@@ -167,7 +168,6 @@ class RiotMatchService
 
     $matchs = [];
 
-    $puuid = $this->getPUUIDByPlayerName($playerName, $region);
     $matchsIds = $this->getMatchsIdsByPUUID($puuid, $region, $limit);
 
     foreach ($matchsIds as $matchId) {

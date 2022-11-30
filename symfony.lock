@@ -174,5 +174,8 @@
         "files": [
             "config/packages/validator.yaml"
         ]
+    },
+    "twig/extra-bundle": {
+        "version": "v3.4.0"
     }
 }

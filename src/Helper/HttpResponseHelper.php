@@ -4,22 +4,26 @@ namespace App\Helper;
 
 class HttpResponseHelper
 {
-  public static function success($data = null, $message = null, $errors = null)
+  public static function success($data = null)
   {
     return [
-      'message' => $message,
+      'success' => true,
       'data' => $data,
-      'errors' => $errors,
     ];
   }
 
-  public static function error($message = null, $errors = null)
+  public static function error($message = null, $code = 400)
   {
     return [
+      'success' => false,
       'message' => $message,
-      'data' => null,
-      'errors' => $errors,
+      'code' => $code,
     ];
+  }
+
+  public static function notFound($message = null)
+  {
+    return self::error($message, 404);
   }
 
   public static function formatErrorFromResponse($response)
