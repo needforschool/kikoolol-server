@@ -24,7 +24,7 @@ class SummonerRepository extends DocumentRepository
   {
     return $this->createQueryBuilder()
       ->field('region')->equals($region)
-      ->text($name)
+      ->field('summonerName')->equals(new \MongoDB\BSON\Regex(".{0,}" . $name . ".{0,}"))
       ->hydrate(false)
       ->getQuery()
       ->execute()
