@@ -57,3 +57,5 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+hop.yml
