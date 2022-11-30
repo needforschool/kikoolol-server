@@ -45,7 +45,7 @@ class MatchService
   public function findBySummonerName(string $summonerName, string $region, int $limit = 20): array
   {
     if (!$this->riotApiService->checkRegion($region)) {
-      throw new NotFoundHttpException('Region not found');
+      throw new NotFoundHttpException("Region not found");
     }
 
     $playerUUID = $this->summonerService->getPUUIDBySummonerName($summonerName, $region);

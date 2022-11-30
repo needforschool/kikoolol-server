@@ -4,7 +4,7 @@ namespace App\Helper;
 
 class HttpResponseHelper
 {
-  public static function success($data = null)
+  public static function success(array $data = null)
   {
     return [
       'success' => true,
@@ -12,18 +12,27 @@ class HttpResponseHelper
     ];
   }
 
-  public static function error($message = null, $code = 400)
+  public static function error(string $message, array $errors = null, int $status = null)
   {
-    return [
+    $message = [
       'success' => false,
       'message' => $message,
-      'code' => $code,
     ];
+
+    if($errors) {
+      $message['errors'] = $errors;
+    }
+
+    if($status) {
+      $message['status'] = $status;
+    }
+
+    return $message;
   }
 
-  public static function notFound($message = null)
+  public static function notFound(string $message, array $errors = null)
   {
-    return self::error($message, 404);
+    return self::error($message, $errors, 404);
   }
 
   public static function formatErrorFromResponse($response)
