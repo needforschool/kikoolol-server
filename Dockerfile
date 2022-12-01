@@ -35,7 +35,7 @@ RUN set -eux; \
 COPY . /app
 
 RUN mkdir -p var && \
-    composer install --prefer-dist --optimize-autoloader --classmap-authoritative --no-interaction --no-ansi --no-dev && \
+    composer install --prefer-dist --optimize-autoloader --classmap-authoritative --no-interaction --no-ansi && \
     bin/console cache:clear --no-warmup && \
     bin/console cache:warmup && \
     # We don't use DotEnv component as docker-compose will provide real environment variables
