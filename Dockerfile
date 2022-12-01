@@ -14,6 +14,8 @@ ENV GIT_COMMIT="${GIT_COMMIT}"
 
 RUN apt-get update -qq && \
     apt-get install -qy \
+		libssl-dev \
+		pkg-config \
     libmagickwand-dev \
     libpng-dev \
     libjpeg-dev \
