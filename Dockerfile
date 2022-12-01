@@ -1,6 +1,6 @@
 # Dockerfile
 
-FROM silarhi/php-apache:8.0-symfony
+FROM silarhi/php-apache:8.1-symfony
 
 # 2nd stage : build the real app container
 EXPOSE 80
@@ -27,8 +27,12 @@ RUN docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/i
     docker-php-ext-install gd exif && \
     docker-php-ext-enable imagick
 
+RUN set -eux; \
+    /bin/bash -lc "pecl install mongodb" && \
+    docker-php-ext-enable mongodb \
+    ;
+
 COPY . /app
-COPY --from=builder /app/public/build /app/public/build
 
 RUN mkdir -p var && \
     APP_ENV=prod composer install --prefer-dist --optimize-autoloader --classmap-authoritative --no-interaction --no-ansi --no-dev && \
