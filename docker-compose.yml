@@ -1,60 +1,25 @@
 version: "3.4"
 
 services:
-  php:
+  database:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - 27017:27017
+    volumes:
+      - ~/apps/mongo:/data/db
+    environment:
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
+  app:
     build:
       context: .
-      target: app_php
-      args:
-        SYMFONY_VERSION: ${SYMFONY_VERSION:-}
-        STABILITY: ${STABILITY:-stable}
-    restart: unless-stopped
-    volumes:
-      - php_socket:/var/run/php
-    healthcheck:
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 30s
+      dockerfile: Dockerfile
+    container_name: app
+    ports:
+      - 8080:8080
     env_file:
       - .env
-
-  caddy:
-    build:
-      context: .
-      target: app_caddy
     depends_on:
-      - php
-    environment:
-      SERVER_NAME: ${SERVER_NAME:-localhost, caddy:80}
-      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
-    restart: unless-stopped
-    volumes:
-      - php_socket:/var/run/php
-      - caddy_data:/data
-      - caddy_config:/config
-    ports:
-      # HTTP
-      - target: 80
-        published: ${HTTP_PORT:-80}
-        protocol: tcp
-      # HTTPS
-      - target: 443
-        published: ${HTTPS_PORT:-443}
-        protocol: tcp
-      # HTTP/3
-      - target: 443
-        published: ${HTTP3_PORT:-443}
-        protocol: udp
-
-# Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
-
-volumes:
-  php_socket:
-  caddy_data:
-  caddy_config:
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
+      - database
