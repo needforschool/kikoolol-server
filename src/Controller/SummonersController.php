@@ -40,6 +40,27 @@ class SummonersController extends AbstractController
   }
 
   /**
+   * Get summoner by name.
+   * 
+   * @Route("/{region}/{summonerName}", name="get_by_name", methods={"GET"})
+   * 
+   * @param string $region From : europe, asia, americas
+   * @param string $summonerName
+   * 
+   * @return JsonResponse
+   */
+  public function getByName(string $region, string $summonerName): JsonResponse
+  {
+    $summoner = $this->service->findByName($summonerName, $region);
+
+    if(!$summoner || empty($summoner)) {
+      return $this->json(HttpResponseHelper::notFound('No summoner found for name ' . $summonerName), 404);
+    }
+
+    return $this->json(HttpResponseHelper::success($summoner), 200);
+  }
+
+  /**
    * Search summoner by name.
    * 
    * @Route("/search/{region}/{summonerName}", name="search_by_name", methods={"GET"})

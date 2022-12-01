@@ -22,6 +22,14 @@ class SummonerService
     return $this->manager->getRepository(SummonerDocument::class)->findAll();
   }
 
+  public function findByName(string $summonerName, string $region): SummonerDocument | null
+  {
+    return $this->manager->getRepository(SummonerDocument::class)->findOneBy([
+      'summonerName' => $summonerName,
+      'region' => $region
+    ]);
+  }
+
   public function getPUUIDBySummonerName(string $summonerName, string $region): string
   {
     $summoner = $this->manager->getRepository(SummonerDocument::class)->findOneBy([

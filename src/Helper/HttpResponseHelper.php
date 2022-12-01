@@ -4,7 +4,7 @@ namespace App\Helper;
 
 class HttpResponseHelper
 {
-  public static function success(array $data = null)
+  public static function success(mixed $data = null)
   {
     return [
       'success' => true,
