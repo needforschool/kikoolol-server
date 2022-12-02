@@ -2,6 +2,8 @@
 
 namespace App\Helper;
 
+use Symfony\Component\HttpClient\Response\NativeResponse;
+
 class HttpResponseHelper
 {
   public static function success(mixed $data = null)
@@ -35,15 +37,15 @@ class HttpResponseHelper
     return self::error($message, $errors, 404);
   }
 
-  public static function formatErrorFromResponse($response)
+  public static function formatErrorFromResponse(NativeResponse $response)
   {
     $errors = [];
-    foreach ($response->getErrors() as $error) {
-      $errors[] = $error->getMessage();
+    
+    $data = $response->toArray();
+    foreach($data['errors'] as $error) {
+      $errors[] = $error['message'];
     }
 
-    print_r($errors);
-
-    return $errors;
+    return self::error($response->getErrorMessage(), $errors, $response->getStatusCode());
   }
 }

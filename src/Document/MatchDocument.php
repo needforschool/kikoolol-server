@@ -5,6 +5,7 @@ namespace App\Document;
 use App\Repository\MatchRepository;
 use App\Util\Hydrateable;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
+use Doctrine\ODM\MongoDB\PersistentCollection;
 
 /**
  * @ODM\Document(collection="matchs", repositoryClass=MatchRepository::class)
@@ -38,7 +39,7 @@ class MatchDocument
 
   public function getMetadata(): Metadata
   {
-    return $this->matchId;
+    return $this->metadata;
   }
 
   public function setMetadata(Metadata $metadata): self
@@ -60,7 +61,7 @@ class MatchDocument
     return $this;
   }
 
-  public function getParticipants(): array
+  public function getParticipants(): PersistentCollection
   {
     return $this->participants;
   }
@@ -72,7 +73,7 @@ class MatchDocument
     return $this;
   }
 
-  public function getTeams(): array
+  public function getTeams(): PersistentCollection
   {
     return $this->teams;
   }
@@ -386,4 +387,35 @@ class Item extends Hydrateable
    * @ODM\Field(type="int")
    */
   protected $position;
+}
+
+class Timeline
+{
+  /***
+   * @ODM\Field(type="int")
+   */
+  protected $frameInterval;
+
+  /**
+   * @ODM\EmbedMany(targetDocument=TimelineEvent::class)
+   */
+  protected $events;
+}
+
+class TimelineEvent
+{
+  /**
+   * @ODM\Field(type="int")
+   */
+  protected $participantId;
+
+  /**
+   * @ODM\Field(type="int")
+   */
+  protected $timestamp;
+
+  /**
+   * @ODM\Field(type="string")
+   */
+  protected $type;
 }

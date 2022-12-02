@@ -64,14 +64,6 @@ class MatchService
       }
     }
 
-    for ($i = 0; $i < count($matchs); $i++) {
-      $match = (array) $matchs[$i];
-
-      foreach ($match["participants"] as $participant) {
-        $this->summonerService->saveSummoner($participant["summonerName"], $participant["puuid"], $region);
-      }
-    }
-
     return $matchs;
   }
 
